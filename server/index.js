@@ -33,12 +33,26 @@ async function start() {
   }
 
   // Give nuxt middleware to express
+  app.get('/css',function(req,res,next){
+  	let css = [];
+  	let js = [];
+  	fs.readdirSync('./static/').forEach(file=>{
+  		ext = path.extname(file);
+  		if(ext=='.css')
+  			css.push('/'+file);
+  		else if(ext=='.js')
+  			js.push('/'+file);
+  	});
+  	let data = {
+  		css: css,
+  		js: js
+  	}
+  	res.send(JSON.stringify(data));
+  })
+
   app.get('/scrapes/:page(*)', async function(req,res,next) {
-	  	try {
-	  	      let { data } = await axios('http://'+req.params.page)
-	  	} catch(err) {
-	  	        console.log(err)
-	  	}
+	  	let { data } = await axios('http://'+req.params.page)
+		console.log(data);
 		let clean = []
 		let mime = ['.png','.jpg','.gif','.svg','.css','.js']
 		urls(data).forEach(url=>{
@@ -48,6 +62,7 @@ async function start() {
 				clean.push(nospec(decodeURI(strip(url))))
 			}
 		});
+		console.log('clean');
 		clean.forEach(async url=>{
 			let ext = path.extname(url)
 			try {
@@ -60,6 +75,7 @@ async function start() {
 			} catch(err) {
 			}
 		});
+		next();
   })
   app.use(nuxt.render)
 

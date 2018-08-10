@@ -1,4 +1,6 @@
 <template>
+<div id=press v-html="$store.state.mark">
+</div>
 </template>
 <script>
 let axios = require('axios');    
@@ -32,11 +34,11 @@ const fixPath = function(url) {
 }
 export default {
 	async fetch(context) {
-		try {
-			let { data } = await axios.get('http://'+context.params.page)
-		} catch(err) {
-			console.log(err)
-		}
+		let sets = await axios.get('http://localhost:3000/css');
+		sets = sets.data;
+		context.store.commit('loadStyles',sets.css);
+		context.store.commit('loadScripts',sets.js);
+		let { data } = await axios.get('http://'+context.params.page)
 		const $ = cheerio.load(data)
 		$('html').find('script').each(function(){
 			$(this).remove()
@@ -56,7 +58,30 @@ export default {
 				data = data.replace(url,'')
 			}
 		})
-		commit('mark',data)
+		context.store.commit('mark',data)
+	},
+	head() {
+		let styles = this.$store.state.styles;
+		let jsFiles = this.$store.state.scripts;
+		let links = [];
+		let scripts = [];
+		styles.forEach(style=>{
+			var sheet = {
+				rel: 'stylesheet',
+				href: style
+			}
+			links.push(sheet);
+		});
+		jsFiles.forEach(file=>{
+			var js = {
+				src: file
+			}
+			scripts.push(js);
+		});
+		return {
+			script: scripts,
+			link: links
+		}
 	}
 
 }
