@@ -19,6 +19,7 @@ const getFiles = async function(data,type) {
 	//let { data } = await axios.get(url);
 	let matches = data.match(/\bhttps?:\/\/\S+/gi);
 	let clean = [];
+	console.log('getfiles')
 	matches.forEach(url=>{
 		url = prep(url).split('?')[0];
 		let ext = path.extname(url);
@@ -46,6 +47,7 @@ export default {
 		data = $('body').html()
 		let matches = data.match(/\bhttps?:\/\/\S+/gi)
 		let clean = await getFiles(data,'all')
+		console.log('clean')
 		clean.forEach(async url=>{
 			url = prep(url).split('?')[0]
 			let ext = path.extname(url)
@@ -65,6 +67,7 @@ export default {
 		let scripts = this.$store.state.scripts;
 		let links = [];
 		//let scripts = [];
+		console.log('styleshead')
 		styles.forEach(style=>{
 			var sheet = {
 				rel: 'stylesheet',

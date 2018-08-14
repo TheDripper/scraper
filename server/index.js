@@ -76,7 +76,6 @@ async function start() {
         		      	  return log.write(err)
         		})
 		}
-		console.log(deps)
 		//reqhost = url.parse('http://'+req.params.page+'/').hostname
 		fs.writeFileSync('deps.txt',JSON.stringify(deps))
 		next();

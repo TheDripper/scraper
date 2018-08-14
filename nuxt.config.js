@@ -1,4 +1,5 @@
 const pkg = require('./package')
+const fs = require('fs')
 
 module.exports = {
   mode: 'universal',
@@ -60,13 +61,19 @@ module.exports = {
       
     }
   },
-  router : {
-	  extendRoutes (routes, resolve) {
-		  routes.push({
-		  	name: 'scrape',
-		  	path: '/scrapes/:page*',
-		  	component: 'pages/scrapes/page.vue'
-		  })
+  router: {
+          extendRoutes (routes, resolve) {
+        	  routes.push({
+        	  	name: 'scrape',
+        	  	path: '/scrapes/:page*',
+        	  	component: 'pages/scrapes/page.vue'
+        	  })
+          }
+  },
+  generate: {
+	  routes : function(){
+		  let data = JSON.parse(fs.readFileSync('sites.txt','utf8'))
+		  return data;
 	  }
   }
 }
