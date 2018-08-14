@@ -36,8 +36,8 @@ export default {
 	async fetch(context) {
 		let sets = await axios.get('http://localhost:3000/css');
 		sets = sets.data;
-		context.store.commit('loadStyles',sets.css);
-		context.store.commit('loadScripts',sets.js);
+		context.store.commit('loadStyles',sets.css)
+		context.store.commit('loadScripts',sets.js)
 		let { data } = await axios.get('http://'+context.params.page)
 		const $ = cheerio.load(data)
 		$('html').find('script').each(function(){
@@ -62,9 +62,9 @@ export default {
 	},
 	head() {
 		let styles = this.$store.state.styles;
-		let jsFiles = this.$store.state.scripts;
+		let scripts = this.$store.state.scripts;
 		let links = [];
-		let scripts = [];
+		//let scripts = [];
 		styles.forEach(style=>{
 			var sheet = {
 				rel: 'stylesheet',
@@ -72,12 +72,12 @@ export default {
 			}
 			links.push(sheet);
 		});
-		jsFiles.forEach(file=>{
-			var js = {
-				src: file
-			}
-			scripts.push(js);
-		});
+		//jsFiles.forEach(file=>{
+		//	var js = {
+		//		src: file
+		//	}
+		//	scripts.push(js);
+		//});
 		return {
 			script: scripts,
 			link: links

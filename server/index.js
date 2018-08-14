@@ -1,4 +1,4 @@
-
+const util = require('util')
 const express = require('express')
 const { Nuxt, Builder } = require('nuxt')
 const app = express()
@@ -15,6 +15,7 @@ const nospec = function(string) {
 const prep = function(url) {
 	return nospec(strip(decodeURI(url)));
 }
+const url = require('url');
 
 app.set('port', port)
 
@@ -35,13 +36,11 @@ async function start() {
   // Give nuxt middleware to express
   app.get('/css',function(req,res,next){
   	let css = [];
-  	let js = [];
+  	let js = JSON.parse(fs.readFileSync('deps.txt','utf8'))
   	fs.readdirSync('./static/').forEach(file=>{
   		ext = path.extname(file);
   		if(ext=='.css')
   			css.push('/'+file);
-  		else if(ext=='.js')
-  			js.push('/'+file);
   	});
   	let data = {
   		css: css,
@@ -52,7 +51,6 @@ async function start() {
 
   app.get('/scrapes/:page(*)', async function(req,res,next) {
 	  	let { data } = await axios('http://'+req.params.page)
-		console.log(data);
 		let clean = []
 		let mime = ['.png','.jpg','.gif','.svg','.css','.js']
 		urls(data).forEach(url=>{
@@ -62,19 +60,25 @@ async function start() {
 				clean.push(nospec(decodeURI(strip(url))))
 			}
 		});
-		console.log('clean');
-		clean.forEach(async url=>{
+		let deps = []
+		for (const url of clean) {
 			let ext = path.extname(url)
-			try {
-				let { data } = await axios.get(url,{responseType:"arraybuffer"})
-				let name = path.basename(url)
-				fs.writeFile('static/'+name,data,function(err){
-        			        if(err)
-        			      	  return log.write(err)
-        			})
-			} catch(err) {
-			}
-		});
+			let { data } = await axios.get(url,{responseType:"arraybuffer"})
+			let name = path.basename(url)
+
+			let parsed = path.parse(url)
+			let fix = url.replace(parsed.dir+'/'+parsed.base,'/'+parsed.base)
+			if(ext=='.js')
+				deps.push({src: fix})
+			//deps.push({src: nospec(decodeURI(strip(url)))})
+			fs.writeFile('static/'+name,data,function(err){
+        		        if(err)
+        		      	  return log.write(err)
+        		})
+		}
+		console.log(deps)
+		//reqhost = url.parse('http://'+req.params.page+'/').hostname
+		fs.writeFileSync('deps.txt',JSON.stringify(deps))
 		next();
   })
   app.use(nuxt.render)
