@@ -1,1 +1,1 @@
-["/test/okay","/test/yes"]
+  ["www.newomics.com"]

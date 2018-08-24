@@ -1,1 +1,1 @@
-[{"src":"/isd2prf.js"},{"src":"/jquery.js"},{"src":"/jquery-migrate.min.js"},{"src":"/cc-script-dist.js"},{"src":"/wp-embed.min.js"}]
+[{"src":"isd2prf.js"},{"src":"jquery.js"},{"src":"jquery-migrate.min.js"},{"src":"cc-script-dist.js"},{"src":"wp-embed.min.js"}]

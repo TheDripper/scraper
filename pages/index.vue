@@ -1,59 +1,93 @@
 <template>
-  <section class="container">
-    <div>
-      <logo/>
-      <h1 class="title">
-        scraper
-      </h1>
-      <h2 class="subtitle">
-        My first-rate Nuxt.js project
-      </h2>
-      <div class="links">
-        <a href="https://nuxtjs.org/" target="_blank" class="button--green">Documentation</a>
-        <a href="https://github.com/nuxt/nuxt.js" target="_blank" class="button--grey">GitHub</a>
-      </div>
-    </div>
-  </section>
+<div id=press v-html="$store.state.mark">
+</div>
 </template>
-
 <script>
-import Logo from '~/components/Logo.vue'
-
+let axios = require('axios');    
+let getUrls = require('get-urls');
+let path = require('path');
+let sanitize = require('sanitize-filename');
+let strip = require('striptags');
+let cheerio = require('cheerio');
+const nospec = function(string) {
+	return string.replace(/[<>'"();]/gi, '');
+}
+const prep = function(url) {
+	return nospec(strip(decodeURI(url)));
+}
+const getFiles = async function(data,type) {
+	//let { data } = await axios.get(url);
+	let matches = data.match(/\bhttps?:\/\/\S+/gi);
+	let clean = [];
+	console.log('getfiles')
+	matches.forEach(url=>{
+		url = prep(url).split('?')[0];
+		let ext = path.extname(url);
+		let imgMime = ['.jpg','.png','.gif','.svg'];
+		if(type=='all'||type=='image'&&imgMime.includes(ext)||type=='script'&&ext=='.js')
+			clean.push(prep(url));
+	});
+	return clean;
+}
+const fixPath = function(url) {
+	let parsed = path.parse(url);
+	return url.replace(parsed.dir+'/'+parsed.base,parsed.base);
+}
 export default {
-  components: {
-    Logo
-  }
+	async fetch(context) {
+		let sets = await axios.get('http://localhost:3000/css');
+		sets = sets.data;
+		context.store.commit('loadStyles',sets.css)
+		context.store.commit('loadScripts',sets.js)
+		console.log("TODAY")
+		let { data } = await axios.get('http://www.newomics.com')
+		const $ = cheerio.load(data)
+		$('html').find('script').each(function(){
+			$(this).remove()
+		});
+		data = $('body').html()
+		let matches = data.match(/\bhttps?:\/\/\S+/gi)
+		let clean = await getFiles(data,'all')
+		console.log('clean')
+		clean.forEach(async url=>{
+			url = prep(url).split('?')[0]
+			let ext = path.extname(url)
+			let imgMime = ['.jpg','.png','.gif','.svg']
+			if(imgMime.includes(ext)) {
+				let parsed = path.parse(url)
+				data = data.replace(parsed.dir+'/'+parsed.base,parsed.base)
+			} else if (ext=='.js') {
+				let parsed = path.parse(url)
+				data = data.replace(url,'')
+			}
+		})
+		context.store.commit('mark',data)
+	},
+	head() {
+		let styles = this.$store.state.styles;
+		let scripts = this.$store.state.scripts;
+		let links = [];
+		//let scripts = [];
+		console.log('styleshead')
+		styles.forEach(style=>{
+			var sheet = {
+				rel: 'stylesheet',
+				href: style
+			}
+			links.push(sheet);
+		});
+		//jsFiles.forEach(file=>{
+		//	var js = {
+		//		src: file
+		//	}
+		//	scripts.push(js);
+		//});
+		console.log(links);
+		return {
+			script: scripts,
+			link: links
+		}
+	}
+
 }
 </script>
-
-<style>
-.container
-{
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-.title
-{
-  font-family: "Quicksand", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* 1 */
-  display: block;
-  font-weight: 300;
-  font-size: 100px;
-  color: #35495e;
-  letter-spacing: 1px;
-}
-.subtitle
-{
-  font-weight: 300;
-  font-size: 42px;
-  color: #526488;
-  word-spacing: 5px;
-  padding-bottom: 15px;
-}
-.links
-{
-  padding-top: 15px;
-}
-</style>

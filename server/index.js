@@ -40,7 +40,7 @@ async function start() {
   	fs.readdirSync('./static/').forEach(file=>{
   		ext = path.extname(file);
   		if(ext=='.css')
-  			css.push('/'+file);
+  			css.push(file);
   	});
   	let data = {
   		css: css,
@@ -49,8 +49,9 @@ async function start() {
   	res.send(JSON.stringify(data));
   })
 
-  app.get('/scrapes/:page(*)', async function(req,res,next) {
-	  	let { data } = await axios('http://'+req.params.page)
+  app.get('/', async function(req,res,next) {
+	  	//let sites = fs.readFileSync('sites.txt','utf8');
+	  	let { data } = await axios('http://www.newomics.com');
 		let clean = []
 		let mime = ['.png','.jpg','.gif','.svg','.css','.js']
 		urls(data).forEach(url=>{
@@ -67,7 +68,8 @@ async function start() {
 			let name = path.basename(url)
 
 			let parsed = path.parse(url)
-			let fix = url.replace(parsed.dir+'/'+parsed.base,'/'+parsed.base)
+			let fix = url.replace(parsed.dir+'/'+parsed.base,parsed.base)
+			console.log(fix);
 			if(ext=='.js')
 				deps.push({src: fix})
 			//deps.push({src: nospec(decodeURI(strip(url)))})
